@@ -304,6 +304,9 @@ function toggleSidebar() {
     // Set the sidebar state in the cookie referring to the base path
     setCookie("sidebarState", sideBarActive ? "open" : "closed", 7, basePath);
     sidebar.classList.toggle("translate-x-full");
+    if (window.innerWidth <= 768) { // Apply full width only on mobile
+        sidebar.classList.toggle("w-full", sideBarActive);
+    }
 
     //Shift content to left when sidebar is open
     document
