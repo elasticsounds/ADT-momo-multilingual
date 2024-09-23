@@ -11,9 +11,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/js/all.min.js"></script>
 <!-- Mathjax script to use for rendering math. -->
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <meta content="16_0" name="page-section-id"/>
 </head>
-<body class="bg-blue-50 lg:p-5 md:p-5 sm:p-0 mb-12 font-sans text-lg">
+<body class="bg-blue-50 lg:p-5 md:p-5 sm:p-0 mb-12 text-2xl" style="font-family: 'Atkinson Hyperlegible', sans-serif;">
 <!-- The main interface components -->
 <!-- DO NOT EDIT Contains the bottom bar, next back buttons, submit button, right sidebar, ai language, eli5 and tts toggles -->
 <div id="interface-container"></div>
@@ -23,15 +26,17 @@
 <main class="container content mx-auto bg-white mt-auto max-w-5xl p-5 rounded-lg shadow-lg lg:px-24 md:px-12 sm:px-6" id="content">
 <!-- THERE MUST ALWAYS BE A SECTION TAG -->
 <section aria-labelledby="main-text" data-id="sectioneli5-16-0" data-section-type="text_and_images" role="article">
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-<div class="flex flex-col justify-center">
-<p class="text-2xl font-bold mb-4" data-id="text-16-0">down ...</p>
-<p class="text-2xl font-bold" data-id="text-16-1">... on its mother.</p>
-</div>
-<div class="w-full flex justify-center">
-<img alt="A cartoon of a leopard and its baby lying under a tree at night." aria-label="A cartoon of a leopard and its baby lying under a tree at night." class="rounded-lg shadow-lg" data-aria-id="aria-16-0-0" data-id="img-16-1" src="images/16_img-16-1.png"/>
-</div>
-</div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Left Column (1/3 width) -->
+        <div class="lg:col-span-1 flex flex-col justify-center text-center">
+            <p class="text-2xl mb-4" data-id="text-16-0">down ...</p>
+            <p class="text-2xl" data-id="text-16-1">... on its mother.</p>
+        </div>
+        <!-- Right Column (2/3 width) -->
+        <div class="lg:col-span-2 w-full flex justify-center">
+            <img alt="A cartoon of a leopard and its baby lying under a tree at night." aria-label="A cartoon of a leopard and its baby lying under a tree at night." class="rounded-lg shadow-lg w-full" data-aria-id="aria-16-0-0" data-id="img-16-1" src="images/16_img-16-1.png"/>
+        </div>
+    </div>
 </section>
 </main>
 

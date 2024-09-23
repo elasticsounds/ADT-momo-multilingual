@@ -203,8 +203,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.addEventListener("keydown", handleKeyboardShortcuts);
             initializePlayBar();
             initializeAudioSpeed();
-
-
+            loadToggleButtonState();
 
             // Unhide navigation and sidebar after a short delay to allow animations
             setTimeout(() => {
@@ -530,6 +529,35 @@ function toggleReadAloud() {
         .classList.toggle("fa-toggle-off", !readAloudMode);
     togglePlayBar();
 }
+
+function loadToggleButtonState() {
+    const readAloudModeCookie = getCookie("readAloudMode");
+    const eli5ModeCookie = getCookie("eli5Mode");
+
+    if (readAloudModeCookie) {
+        readAloudMode = readAloudModeCookie === "true";
+        document
+            .getElementById("toggle-read-aloud-icon")
+            .classList.toggle("fa-toggle-on", readAloudMode);
+        document
+            .getElementById("toggle-read-aloud-icon")
+            .classList.toggle("fa-toggle-off", !readAloudMode);
+    }
+
+    if (eli5ModeCookie) {
+        eli5Mode = eli5ModeCookie === "true";
+        document
+            .getElementById("toggle-eli5-icon")
+            .classList.toggle("fa-toggle-on", eli5Mode);
+        document
+            .getElementById("toggle-eli5-icon")
+            .classList.toggle("fa-toggle-off", !eli5Mode);
+    }
+
+    togglePlayBar();
+}
+
+// Call the function to load the state on page load
 
 function toggleEli5Mode() {
     eli5Mode = !eli5Mode;
