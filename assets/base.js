@@ -561,7 +561,6 @@ function loadToggleButtonState() {
 }
 
 // Call the function to load the state on page load
-
 function toggleEli5Mode() {
     eli5Mode = !eli5Mode;
     document
