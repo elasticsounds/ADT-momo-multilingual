@@ -231,11 +231,11 @@ function handleKeyboardShortcuts(event) {
         return; // Exit if the user is inside a text box
     }
 
-    switch (event.key) {
-        case "x":
+    switch (event.code) {
+        case "KeyX":
             toggleNav();
             break;
-        case "a":
+        case "KeyA":
             toggleSidebar();
             break;
         case "ArrowRight":
@@ -250,11 +250,11 @@ function handleKeyboardShortcuts(event) {
 
     // Additional shortcuts for screen reader users (Alt + Shift + key)
     if (isAltShift) {
-        switch (event.key) {
-            case "x":
+        switch (event.code) {
+            case "KeyX":
                 toggleNav();
                 break;
-            case "a":
+            case "KeyA":
                 toggleSidebar();
                 break;
             case "ArrowRight":
