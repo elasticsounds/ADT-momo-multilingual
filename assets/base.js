@@ -231,25 +231,11 @@ function handleKeyboardShortcuts(event) {
         return; // Exit if the user is inside a text box
     }
 
-    switch (event.code) {
-        case "KeyX":
-            toggleNav();
-            break;
-        case "KeyA":
-            toggleSidebar();
-            break;
-        case "ArrowRight":
-            nextPage();
-            break;
-        case "ArrowLeft":
-            previousPage();
-            break;
-    }
-
-    const isAltShift = event.altKey && event.shiftKey;
+    const isAltShift = (event.altKey || event.getModifierState('AltGraph')) && event.shiftKey;
 
     // Additional shortcuts for screen reader users (Alt + Shift + key)
     if (isAltShift) {
+        // Shortcuts for screen reader users (Alt + Shift + key)
         switch (event.code) {
             case "KeyX":
                 toggleNav();
@@ -263,8 +249,24 @@ function handleKeyboardShortcuts(event) {
             case "ArrowLeft":
                 previousPage();
                 break;
-        } // end switch
-    } // end if
+        }
+    } else {
+        // Regular shortcuts (without Alt + Shift)
+        switch (event.code) {
+            case "KeyX":
+                toggleNav();
+                break;
+            case "KeyA":
+                toggleSidebar();
+                break;
+            case "ArrowRight":
+                nextPage();
+                break;
+            case "ArrowLeft":
+                previousPage();
+                break;
+        }
+    }    
 }
 
 let translations = {};
