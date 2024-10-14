@@ -13,11 +13,12 @@
         <select data-id="language-dropdown" id="language-dropdown" aria-labelledby="language-label"
             class="ml-4 px-4 py-2 bg-white text-gray-800 border-gray-200 border-2 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-50 text-lg">
         </select>
+        <div id="language-change-announcement" aria-live="polite" class="sr-only"></div>
     </div>
 
     <div class="flex justify-between items-left mb-4">
         <h3 class="text-xl text-left m-4 sidebar-item" id="easy-read-label" data-id="easy-read-label">Easy Read</h3>
-        <button id="toggle-easy-read-button" type="button"
+        <button id="toggle-easy-read-button" type="button" aria-labelledby="easy-read-label" aria-pressed="false"
             class="toggle-button text-2xl px-4 py-2 bg-white border-gray-200 border-2 text-black rounded-lg shadow-md hover:bg-blue-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
             <i id="toggle-easy-read-icon" class="text-3xl fas fa-toggle-off"></i>
         </button>
@@ -42,6 +43,7 @@
     class="fixed bottom-20 right-4 bg-black text-white p-1 rounded-full shadow-md">
     <i class="fas fa-universal-access text-3xl"></i>
 </button>
+<span id="sidebar-description" aria-live="polite" class="sr-only"></span>
 
 <!-- Floating play bar -->
 <div class="fixed bottom-20 right-20 bg-black text-white p-1 rounded-lg shadow-md hidden" id="play-bar">

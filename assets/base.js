@@ -333,7 +333,25 @@ function toggleSidebar() {
 
             // Set focus on the first element of the sidebar after a delay
             setTimeout(() => {
-                languageDropdown.focus();
+               // Add the announcement for screen readers
+               const announcement = document.getElementById("sidebar-description");
+               if (!announcement) {
+                // Create the announcement element if it doesn't exist
+                const newAnnouncement = document.createElement("div");
+                newAnnouncement.id = "language-change-announcement";
+                newAnnouncement.setAttribute("aria-live", "polite");
+                newAnnouncement.classList.add("sr-only");
+                document.body.appendChild(newAnnouncement);
+                }
+            
+                // Set the announcement text
+                announcement.textContent = 'This sidebar allows you to change the language, activate easy read mode, and access text-to-speech and explain-to-me options.';
+            
+                // Clear the announcement after a short delay
+                setTimeout(() => {
+                    announcement.textContent = '';
+                    languageDropdown.focus();
+                }, 7000);
             }, 500);
         } else {
             element.setAttribute("aria-hidden", "true");
@@ -353,6 +371,25 @@ function switchLanguage() {
         .getElementsByTagName("html")[0]
         .setAttribute("lang", currentLanguage);
     fetchTranslations();
+
+  // Add the announcement for screen readers
+  const announcement = document.getElementById("language-change-announcement");
+  if (!announcement) {
+      // Create the announcement element if it doesn't exist
+      const newAnnouncement = document.createElement("div");
+      newAnnouncement.id = "language-change-announcement";
+      newAnnouncement.setAttribute("aria-live", "polite");
+      newAnnouncement.classList.add("sr-only");
+      document.body.appendChild(newAnnouncement);
+  }
+  
+  // Set the announcement text
+  announcement.textContent = 'Language changed';
+  
+  // Clear the announcement after a short delay
+  setTimeout(() => {
+      announcement.textContent = '';
+  }, 1000);    
 }
 
 async function fetchTranslations() {
