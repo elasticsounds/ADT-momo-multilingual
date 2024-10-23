@@ -5,6 +5,11 @@ module.exports = {
     './assets/**/*.html',  // Looks at HTML files in the "assets" folder
     './assets/**/*.js',    // Looks at JS files in the "assets" folder
 ],
+  safelist: [
+    {
+      pattern: /([a-zA-Z]+)-./,
+    }
+  ],
   theme: {
     extend: {},
   },
