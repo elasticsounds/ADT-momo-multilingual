@@ -171,18 +171,54 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       }
 
-      //Set the initial page number
-      const pageSectionMetaTag = document.querySelector(
-        'meta[name="page-section-id"]'
-      );
-      document.getElementById("page-section-id").innerText =
-        pageSectionMetaTag.getAttribute("content");
+      // Append page and section numbers to nav list items
+      const navListItems = document.querySelectorAll(".nav__list-item");
 
-      // Fetch translations and set up click handlers for elements with data-id
-      await fetchTranslations();
-      document.querySelectorAll("[data-id]").forEach((element) => {
-        element.addEventListener("click", handleElementClick);
+      navListItems.forEach((item) => {
+        const link = item.querySelector(".nav__list-link");
+        const href = link.getAttribute("href");
+        const pageSectionMatch = href.match(/(\d+)_(\d+)/);
+
+        if (pageSectionMatch) {
+          const [_, pageNumber, sectionNumber] = pageSectionMatch.map(Number);
+          link.innerText = `Page ${pageNumber + 1}`;
+        }
       });
+
+      // Set the initial page number
+      const pageSectionMetaTag = document.querySelector('meta[name="page-section-id"]');
+      const pageSectionContent = pageSectionMetaTag.getAttribute("content");
+
+      if (pageSectionContent) {
+        const parts = pageSectionContent.split('_').map(Number);
+        let humanReadablePage;
+      
+        if (parts.length === 2) {
+          if (parts[1] === 0) {
+            humanReadablePage = `Page ${parts[0] + 1}`;
+          } else {
+            humanReadablePage = `Page ${parts[0] + 1}.${parts[1] + 1}`;
+          }
+        } else {
+          humanReadablePage = `Page ${parts[0] + 1}`;
+        }
+      
+        document.getElementById("page-section-id").innerText = humanReadablePage;
+        
+        // Highlight the current page in the navigation menu
+        navListItems.forEach((item) => {
+          const link = item.querySelector(".nav__list-link");
+          const href = link.getAttribute("href");
+          if (href.includes(pageSectionContent)) {
+            item.classList.add("border-l-4", "border-blue-500", "bg-blue-100", "p-2");
+            link.classList.add("text-black");
+          } else {
+            item.classList.remove("border-l-4", "border-blue-500", "bg-blue-100", "p-2");
+            link.classList.remove("text-black");
+            link.classList.add("text-black");
+          }
+        });
+      }
 
       // Add keyboard event listeners for navigation
       document.addEventListener("keydown", handleKeyboardShortcuts);
