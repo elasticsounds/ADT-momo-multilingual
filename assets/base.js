@@ -684,6 +684,10 @@ function toggleEli5Mode() {
 
   // Automatically display ELI5 content when mode is toggled on
   if (eli5Mode) {
+    // Set text for the eli5 accessibility tip.        
+    const eli5tip = document.getElementById("eli5-accessibility-tip");
+    eli5tip.textContent = "Go to the next element to hear the eli5 explanation.";
+
     // Find the main section element that contains the eli5 data-id
     const mainSection = document.querySelector(
       'section[data-id^="sectioneli5"]'
@@ -695,10 +699,8 @@ function toggleEli5Mode() {
       if (eli5Text) {
         // Update the ELI5 content in the sidebar
         const eli5Container = document.getElementById("eli5-content");
-        const eli5tip = document.getElementById("eli5-accessibility-tip");
         eli5Container.textContent = eli5Text;
         eli5Container.classList.remove("hidden");
-        eli5tip.textContent = translations["Go to the next element to hear the eli5 explanation."];
 
         // Highlight both the main section and the ELI5 content
         //highlightElement(mainSection);
@@ -731,6 +733,10 @@ function toggleEli5Mode() {
     // Clear the ELI5 content when mode is turned off
     document.getElementById("eli5-content").textContent = "";
     document.getElementById("eli5-content").classList.add("hidden");
+
+    // Clear the eli5 accessibility tip.        
+    const eli5tip = document.getElementById("eli5-accessibility-tip");
+    eli5tip.textContent = "";
   }
   setCookie("eli5Mode", eli5Mode, 7); // Save state in cookie
 }
