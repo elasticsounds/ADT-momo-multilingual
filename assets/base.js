@@ -289,47 +289,50 @@ document.addEventListener("DOMContentLoaded", function () {
 function handleKeyboardShortcuts(event) {
   const activeElement = document.activeElement;
   const isInTextBox =
-    activeElement.tagName === "INPUT" || activeElement.tagName === "TEXTAREA";
+      activeElement.tagName === "INPUT" ||
+      activeElement.tagName === "TEXTAREA";
 
   // disable shortcut keys if user is in a textbox
   if (isInTextBox) {
-    return; // Exit if the user is inside a text box
+      return; // Exit if the user is inside a text box
   }
 
-  switch (event.key) {
-    case "x":
-      toggleNav();
-      break;
-    case "a":
-      toggleSidebar();
-      break;
-    case "ArrowRight":
-      nextPage();
-      break;
-    case "ArrowLeft":
-      previousPage();
-      break;
-  }
-
-  const isAltShift = event.altKey && event.shiftKey;
+  const isAltShift = (event.altKey || event.getModifierState('AltGraph')) && event.shiftKey;
 
   // Additional shortcuts for screen reader users (Alt + Shift + key)
   if (isAltShift) {
-    switch (event.key) {
-      case "x":
-        toggleNav();
-        break;
-      case "a":
-        toggleSidebar();
-        break;
-      case "ArrowRight":
-        nextPage();
-        break;
-      case "ArrowLeft":
-        previousPage();
-        break;
-    } // end switch
-  } // end if
+      // Shortcuts for screen reader users (Alt + Shift + key)
+      switch (event.code) {
+          case "KeyX":
+              toggleNav();
+              break;
+          case "KeyA":
+              toggleSidebar();
+              break;
+          case "ArrowRight":
+              nextPage();
+              break;
+          case "ArrowLeft":
+              previousPage();
+              break;
+      }
+  } else {
+      // Regular shortcuts (without Alt + Shift)
+      switch (event.code) {
+          case "KeyX":
+              toggleNav();
+              break;
+          case "KeyA":
+              toggleSidebar();
+              break;
+          case "ArrowRight":
+              nextPage();
+              break;
+          case "ArrowLeft":
+              previousPage();
+              break;
+      }
+  }    
 }
 
 let translations = {};
