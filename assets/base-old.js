@@ -10,71 +10,6 @@ document.addEventListener("DOMContentLoaded", function () {
     currentLanguage = languageCookie;
   }
 
-  loadAtkinsonFont();
-
-  //save function 
-  function saveActivities() {
-    const activities = document.querySelectorAll(
-      "input[type='text'], textarea, .word-card"
-    );
-    const submitButton = document.getElementById("submit-button");
-    const dropzones = document.querySelectorAll(".dropzone");
-    const activityId = location.pathname
-      .substring(location.pathname.lastIndexOf("/") + 1)
-      .split(".")[0];
-    // Add event listeners to dropzones
-    dropzones.forEach((dropzone) => {
-      const dropzonesData = JSON.parse(localStorage.getItem(activityId)) || {};
-      const dropzoneRegion = dropzone.querySelector("div[role='region']");
-      const dropzoneId = dropzoneRegion.getAttribute("id");
-      if (dropzoneId in dropzonesData) {
-        const { itemId } = dropzonesData[dropzoneId];
-        const wordElement = document.querySelector(
-          `.activity-item[data-activity-item='${itemId}']`
-        );
-        dropzoneRegion.appendChild(wordElement);
-      }
-      dropzone.addEventListener("drop", (event) => {
-        event.preventDefault();
-        const itemId = event.dataTransfer.getData("text");
-        const regexItem = /^item-/;
-        if (!regexItem.test(itemId)) {
-          return;
-        }
-        if (!itemId || itemId === "null") {
-          return;
-        }
-        let dataActivity = JSON.parse(localStorage.getItem(activityId)) || {};
-        if (
-          dataActivity[dropzoneId] &&
-          dataActivity[dropzoneId].itemId === itemId
-        ) {
-          console.log("El elemento ya está presente en esta zona");
-          return;
-        }
-        dataActivity[dropzoneId] = { itemId };
-        localStorage.setItem(activityId, JSON.stringify(dataActivity));
-      });
-    });
-
-    // Add event listeners to other activities
-    activities.forEach((nodo) => {
-      const id = nodo.getAttribute("data-aria-id")
-      const localStorageNodeId = `${activityId}_${id}`
-      nodo.value = localStorage.getItem(localStorageNodeId)
-
-      nodo.addEventListener("input", (event) => {
-        const value = event.target.value
-        localStorage.setItem(localStorageNodeId, value)
-      })
-    })
-
-    /* submitButton.addEventListener("click", ()=> {
-      localStorage.setItem(`${activityId}_success`, "true")
-    }) */
-  }
-
-
   // Fetch interface.html and nav.html, and activity.js concurrently
   Promise.all([
     fetch("assets/interface.html").then((response) => response.text()),
@@ -145,7 +80,6 @@ document.addEventListener("DOMContentLoaded", function () {
         "close-sidebar",
         "language-dropdown",
         "toggle-eli5-mode-button",
-        "sidebar",
       ];
       elements.forEach((id) => {
         const element = document.getElementById(id);
@@ -160,70 +94,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       });
 
-      saveActivities()
-
-      // Initialize left nav bar state from cookie
-      const navState = getCookie("navState") || "closed";
-      const navPopup = document.getElementById("navPopup");
-      const navToggle = document.querySelector(".nav__toggle");
-      const navList = document.querySelector(".nav__list");
-      const navLinks = document.querySelectorAll(".nav__list-link");
-      const savedPosition = getCookie("navScrollPosition");
-
-      if (navState === "open") {
-        navPopup.classList.remove("-translate-x-full");
-        navPopup.classList.add("left-2");
-        navPopup.setAttribute("aria-hidden", "false");
-        if (navList) {
-          navList.removeAttribute("hidden");
-          // Wait for nav list to be visible before setting scroll
-          setTimeout(() => {
-            if (savedPosition) {
-              console.log("Setting scroll after delay to:", savedPosition);
-              navList.scrollTop = parseInt(savedPosition);
-              console.log("Actual scroll position:", navList.scrollTop);
-            }
-          }, 300); // Increased delay
-        }
-        if (navToggle) {
-          navToggle.setAttribute("aria-expanded", "true");
-        }
-      }
-      
-      // Restore nav scroll position
-      //navList = document.querySelector(".nav__list");
-      console.log("DOMContentLoaded - Retrieved saved position:", savedPosition);
-      console.log("DOMContentLoaded - Current navList:", navList);
-      
-      if (navList && savedPosition) {
-        navList.scrollTop = parseInt(savedPosition);
-        
-        // Only handle focus if nav is open
-        if (navState === "open") {
-          setTimeout(() => {
-            const currentPath = window.location.pathname.split("/").pop() || "index.html";
-            const activeLink = Array.from(document.querySelectorAll(".nav__list-link")).find(
-              link => link.getAttribute("href") === currentPath
-            );
-            
-            if (activeLink) {
-              const linkRect = activeLink.getBoundingClientRect();
-              const navRect = navList.getBoundingClientRect();
-              const isInView = (
-                linkRect.top >= navRect.top &&
-                linkRect.bottom <= navRect.bottom
-              );
-              
-              if (!isInView) {
-                activeLink.scrollIntoView({ behavior: "smooth", block: "center" });
-              }
-              activeLink.setAttribute("tabindex", "0");
-              activeLink.focus({ preventScroll: true });
-            }
-          }, 300);
-        }
-      }
-
       // Add event listeners to various UI elements
       prepareActivity();
       // right side bar
@@ -234,19 +104,19 @@ document.addEventListener("DOMContentLoaded", function () {
         .getElementById("close-sidebar")
         .addEventListener("click", toggleSidebar);
       document
-        .getElementById("toggle-eli5")
+        .getElementById("toggle-eli5-mode-button")
         .addEventListener("click", toggleEli5Mode);
       document
         .getElementById("language-dropdown")
         .addEventListener("change", switchLanguage);
       document
-        .getElementById("toggle-easy")
+        .getElementById("toggle-easy-read-button")
         .addEventListener("click", toggleEasyReadMode);
       document
         .getElementById("play-pause-button")
         .addEventListener("click", togglePlayPause);
       document
-        .getElementById("toggle-tts")
+        .getElementById("toggle-read-aloud")
         .addEventListener("click", toggleReadAloud);
       document
         .getElementById("audio-previous")
@@ -254,6 +124,9 @@ document.addEventListener("DOMContentLoaded", function () {
       document
         .getElementById("audio-next")
         .addEventListener("click", playNextAudio);
+      document
+        .getElementById("play-bar-settings-toggle")
+        .addEventListener("click", togglePlayBarSettings);
       document
         .getElementById("read-aloud-speed")
         .addEventListener("click", togglePlayBarSettings);
@@ -275,179 +148,91 @@ document.addEventListener("DOMContentLoaded", function () {
       document
         .getElementById("forward-button")
         .addEventListener("click", nextPage);
+      // document
+      //   .getElementById("submit-button")
+      //   .addEventListener("click", validateInputs);
 
       // left nav bar
       document.getElementById("nav-popup").addEventListener("click", toggleNav);
       document.getElementById("nav-close").addEventListener("click", toggleNav);
-      //const navToggle = document.querySelector(".nav__toggle");
-      //const navLinks = document.querySelectorAll(".nav__list-link");
-      //const navPopup = document.getElementById("navPopup");
-
-      navLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-          // Save the current scroll position before navigation
-          if (navList) {
-            const scrollPosition = navList.scrollTop;
-            setCookie("navScrollPosition", scrollPosition, 7, basePath);
-          }
-        });
-      });
+      const navToggle = document.querySelector(".nav__toggle");
+      const navLinks = document.querySelectorAll(".nav__list-link");
+      const navPopup = document.getElementById("navPopup");
 
       if (navToggle) {
         navToggle.addEventListener("click", toggleNav);
       }
 
+      if (navLinks) {
+        navLinks.forEach((link) => {
+          link.addEventListener("click", () => {
+            // Add your logic for nav link click here
+          });
+        });
+      }
+
       // Append page and section numbers to nav list items
       const navListItems = document.querySelectorAll(".nav__list-item");
 
-      navListItems.forEach((item, index) => {
+      navListItems.forEach((item) => {
         const link = item.querySelector(".nav__list-link");
-        item.classList.add(
-          "border-b",
-          "border-gray-300",          
-          "flex",
-          "items-center"
-        );
-        link.classList.add(
-          "flex-grow",
-          "flex",
-          "items-center",
-          "w-full",
-          "h-full",
-          "p-2",
-          "py-3",
-          "hover:bg-blue-50",
-          "transition",
-          "text-gray-500"
-          
-        );
-
-        // Add border top to the first element
-        if (index === 0) {
-          item.classList.add("border-t");
-        }
-        let itemIcon = "";
-        let itemSubtitle = "";
         const href = link.getAttribute("href");
-        const pageMatch = href.match(/(\d+)/); // Changed to match just the first number
-        
-        if (item.classList.contains("activity")) {
-          const activityId = href.split(".")[0];
-          const success = JSON.parse(localStorage.getItem(`${activityId}_success`)) || false;
-          itemIcon = '<i class="fas fa-pen-to-square"></i>';
-          if (success) {
-            itemIcon = '<i class="fas fa-check-square text-green-500 mt-1"></i>';
-            itemSubtitle = "<span data-id='activity-completed'></span>";
-          } else {
-            itemIcon = '<i class="fas fa-pen-to-square mt-1 text-blue-700"></i>';
-            itemSubtitle = "<span data-id='activity-to-do'></span>";
-          }
-        }
+        const pageSectionMatch = href.match(/(\d+)_(\d+)/);
 
-        const activityId = href.split(".")[0];
-        
-        const textId = link.getAttribute("data-text-id");
-
-        if (pageMatch) {
-          const pageNumber = parseInt(pageMatch[1]);
-          link.innerHTML =
-            "<div class='flex items-top space-x-2'>" +
-            itemIcon +
-            "<div>" +
-            `<div><span data-id='page'></span> ${pageNumber + 1}</div>` +
-            "<div class='text-sm text-gray-500'>" +
-            itemSubtitle +
-            "</div></div></div>";
-        }
-      
-
-        if (href === window.location.pathname.split("/").pop()) {
-          item.classList.add("min-h-[3rem]");
-          link.classList.add(
-            "border-l-4",
-            "border-blue-500",
-            "bg-blue-100",
-            "p-2"
-          );
+        if (pageSectionMatch) {
+          const [_, pageNumber, sectionNumber] = pageSectionMatch.map(Number);
+          link.innerText = `Page ${pageNumber + 1}`;
         }
       });
 
       // Set the initial page number
-      const pageSectionMetaTag = document.querySelector(
-        'meta[name="page-section-id"]'
-      );
+      const pageSectionMetaTag = document.querySelector('meta[name="page-section-id"]');
       const pageSectionContent = pageSectionMetaTag.getAttribute("content");
-      if (pageSectionContent) {
-        const parts = pageSectionContent.split("_").map(Number);
-        let humanReadablePage;
 
+      if (pageSectionContent) {
+        const parts = pageSectionContent.split('_').map(Number);
+        let humanReadablePage;
+      
         if (parts.length === 2) {
           if (parts[1] === 0) {
-            humanReadablePage =
-              "<span data-id='page'></span> " + `${parts[0] + 1}`;
+            humanReadablePage = `Page ${parts[0] + 1}`;
           } else {
-            humanReadablePage =
-              "<span data-id='page'></span> " +
-              `${parts[0] + 1}.${parts[1] + 1}`;
+            humanReadablePage = `Page ${parts[0] + 1}.${parts[1] + 1}`;
           }
         } else {
-          humanReadablePage =
-            "<span data-id='page'></span> " + ` ${parts[0] + 1}`;
+          humanReadablePage = `Page ${parts[0] + 1}`;
         }
-
-        document.getElementById("page-section-id").innerHTML =
-          humanReadablePage;
+      
+        document.getElementById("page-section-id").innerText = humanReadablePage;
+        
+        // Highlight the current page in the navigation menu
+        navListItems.forEach((item) => {
+          const link = item.querySelector(".nav__list-link");
+          const href = link.getAttribute("href");
+          if (href.includes(pageSectionContent)) {
+            item.classList.add("border-l-4", "border-blue-500", "bg-blue-100", "p-2");
+            link.classList.add("text-black");
+          } else {
+            item.classList.remove("border-l-4", "border-blue-500", "bg-blue-100", "p-2");
+            link.classList.remove("text-black");
+            link.classList.add("text-black");
+          }
+        });
       }
-
-      // Fetch translations and set up click handlers for elements with data-id
-      await fetchTranslations();
-      document.querySelectorAll("[data-id]").forEach((element) => {
-        element.addEventListener("click", handleElementClick);
-      });
 
       // Add keyboard event listeners for navigation
       document.addEventListener("keydown", handleKeyboardShortcuts);
-
-      console.log('Setting up toggle button keyboard handlers');
-      const toggleButtons = document.querySelectorAll('[id^="toggle-"]');
-      console.log('Found toggle buttons:', toggleButtons.length);
-
-      toggleButtons.forEach(button => {
-        button.addEventListener('keydown', function(event) {
-          console.log('Toggle button keydown event:', event.key, 'on button:', this.id);
-          
-          // Allow ArrowRight and ArrowLeft to propagate for navigation
-          if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
-            console.log('Navigation key detected on toggle button - allowing propagation');
-            return true;
-          }
-          
-          // Handle space and enter normally for toggle buttons
-          if (event.key === ' ' || event.key === 'Enter') {
-            console.log('Space/Enter key on toggle button - triggering click');
-            event.preventDefault();
-            this.click();
-          }
-        });
-        console.log('Added keydown listener to button:', button.id);
-      });
 
       //Load status of AI controls in right sidebar on load from cookie.
       initializePlayBar();
       initializeAudioSpeed();
       loadToggleButtonState();
       loadEasyReadMode();
-      loadAutoplayState();
-      document.getElementById("toggle-autoplay").addEventListener("click", toggleAutoplay);
-      document.getElementById("toggle-describe-images").addEventListener("click", toggleDescribeImages);
-      loadDescribeImagesState();
 
       // Unhide navigation and sidebar after a short delay to allow animations
       setTimeout(() => {
         navPopup.classList.remove("hidden");
         document.getElementById("sidebar").classList.remove("hidden");
-        console.log("DOMContentLoaded - Actual scroll position:", navList.scrollTop);
-
       }, 100); // Adjust the timeout duration as needed
 
       // Add click handler specifically for eli5-content area
@@ -501,124 +286,55 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // Handle keyboard events for navigation
-// Updated handleKeyboardShortcuts function with better input detection
 function handleKeyboardShortcuts(event) {
-  console.log('handleKeyboardShortcuts called with key:', event.key);
-  
   const activeElement = document.activeElement;
-  console.log('Active element:', activeElement.tagName, 'ID:', activeElement.id);
-  
-  // More specific check for text input elements
-  const isInTextBox = (activeElement.tagName === "INPUT" && 
-                       activeElement.type !== "checkbox" && 
-                       activeElement.type !== "radio") || 
-                      activeElement.tagName === "TEXTAREA" ||
-                      activeElement.isContentEditable;
-  
-  // Check if any modifier keys are pressed (except Alt+Shift)
-  const hasModifiers = event.ctrlKey || event.metaKey || 
-                      (event.altKey && !event.shiftKey);
-  
-  console.log('isInTextBox:', isInTextBox, 'hasModifiers:', hasModifiers);
-  
-  // Exit if in text input (but not checkbox/radio) or if unwanted modifier keys are pressed
-  if ((isInTextBox && !activeElement.id.startsWith('toggle-')) || hasModifiers) {
-    console.log('Exiting early due to text input or modifiers');
-    return;
+  const isInTextBox =
+      activeElement.tagName === "INPUT" ||
+      activeElement.tagName === "TEXTAREA";
+
+  // disable shortcut keys if user is in a textbox
+  if (isInTextBox) {
+      return; // Exit if the user is inside a text box
   }
 
-  // Get toggle states
-  const readAloudMode = getCookie("readAloudMode") === "true";
-  const easyReadMode = getCookie("easyReadMode") === "true";
-  const eli5Mode = getCookie("eli5Mode") === "true";
-  
-  console.log('Current modes - readAloud:', readAloudMode, 'easyRead:', easyReadMode, 'eli5:', eli5Mode);
+  const isAltShift = (event.altKey || event.getModifierState('AltGraph')) && event.shiftKey;
 
-  // Handle navigation keys
-  if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
-    console.log(`${event.key} pressed - handling navigation`);
-    event.preventDefault();
-    if (event.key === "ArrowRight") {
-      nextPage();
-    } else {
-      previousPage();
-    }
-    return;
-  }
-
-  switch (event.key) {
-    case "x":
-      console.log('X key pressed - toggling nav');
-      event.preventDefault();
-      toggleNav();
-      break;
-    case "a":
-      console.log('A key pressed - toggling sidebar');
-      event.preventDefault();
-      toggleSidebar();
-      break;
-  }
-
-  // Handle Alt+Shift shortcuts separately
-  if (event.altKey && event.shiftKey) {
-    console.log('Alt+Shift modifier detected');
-    switch (event.key) {
-      case "x":
-        console.log('Alt+Shift+X pressed - toggling nav');
-        event.preventDefault();
-        toggleNav();
-        break;
-      case "a":
-        console.log('Alt+Shift+A pressed - toggling sidebar');
-        event.preventDefault();
-        toggleSidebar();
-        break;
-    }
-  }
+  // Additional shortcuts for screen reader users (Alt + Shift + key)
+  if (isAltShift) {
+      // Shortcuts for screen reader users (Alt + Shift + key)
+      switch (event.code) {
+          case "KeyX":
+              toggleNav();
+              break;
+          case "KeyA":
+              toggleSidebar();
+              break;
+          case "ArrowRight":
+              nextPage();
+              break;
+          case "ArrowLeft":
+              previousPage();
+              break;
+      }
+  } else {
+      // Regular shortcuts (without Alt + Shift)
+      switch (event.code) {
+          case "KeyX":
+              toggleNav();
+              break;
+          case "KeyA":
+              toggleSidebar();
+              break;
+          case "ArrowRight":
+              nextPage();
+              break;
+          case "ArrowLeft":
+              previousPage();
+              break;
+      }
+  }    
 }
 
-// Function to load fonts dynamically
-function loadAtkinsonFont() {
-  // Create and load the preconnect links
-  const gFontsPreconnect = document.createElement('link');
-  gFontsPreconnect.rel = 'preconnect';
-  gFontsPreconnect.href = 'https://fonts.googleapis.com';
-  
-  const gStaticPreconnect = document.createElement('link');
-  gStaticPreconnect.rel = 'preconnect';
-  gStaticPreconnect.href = 'https://fonts.gstatic.com';
-  gStaticPreconnect.crossOrigin = 'anonymous';
-  
-  // Create and load the font stylesheet
-  const fontStylesheet = document.createElement('link');
-  fontStylesheet.rel = 'stylesheet';
-  fontStylesheet.href = 'https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap';
-  
-  // Append elements to document head
-  document.head.appendChild(gFontsPreconnect);
-  document.head.appendChild(gStaticPreconnect);
-  document.head.appendChild(fontStylesheet);
-  
-  // Apply the font to the entire document
-  document.documentElement.style.fontFamily = '"Atkinson Hyperlegible", sans-serif';
-  
-  // Also apply to all elements that might inherit from a different font
-  const styleSheet = document.createElement('style');
-  styleSheet.textContent = `
-    body, p, h1, h2, h3, h4, h5, h6, span, div, button, input, textarea, select {
-      font-family: "Atkinson Hyperlegible", sans-serif !important;
-    }
-  `;
-  document.head.appendChild(styleSheet);
-}
-
-// Helper function to check if an element is a toggle button
-function isToggleButton(element) {
-  const isToggle = element.matches('[id^="toggle-"]') || 
-                   element.closest('[id^="toggle-"]') !== null;
-  console.log('isToggleButton check for element:', element.id, 'Result:', isToggle);
-  return isToggle;
-}
 let translations = {};
 let audioFiles = {};
 let currentAudio = null;
@@ -634,49 +350,6 @@ let readAloudMode = false;
 let sideBarActive = false;
 let easyReadMode = false;
 let audioSpeed = 1;
-let autoplayMode = true;
-let describeImagesMode = false;
-const speedMapping = {
-  'speed-0-5': "0.5",
-  'speed-1': "1",
-  'speed-1-5': "1.5",
-  'speed-2': "2"
-};
-
-// Add this function to handle loading the autoplay state
-function loadAutoplayState() {
-  const autoplayModeCookie = getCookie("autoplayMode");
-  if (autoplayModeCookie !== null) {
-    autoplayMode = autoplayModeCookie === "true";
-    toggleCheckboxState("toggle-autoplay", autoplayMode);
-  }
-}
-
-function toggleDescribeImages() {
-  describeImagesMode = !describeImagesMode;
-  toggleCheckboxState("toggle-describe-images", describeImagesMode);
-  setCookie("describeImagesMode", describeImagesMode, 7);
-
-  // Regather audio elements to update the sequence with or without images
-  if (readAloudMode) {
-      gatherAudioElements();
-      if (isPlaying) {
-          stopAudio();
-          currentIndex = 0;
-          playAudioSequentially();
-      }
-  }
-}
-
-// Add function to load the describe images state
-function loadDescribeImagesState() {
-  const describeImagesModeCookie = getCookie("describeImagesMode");
-  if (describeImagesModeCookie !== null) {
-      describeImagesMode = describeImagesModeCookie === "true";
-      toggleCheckboxState("toggle-describe-images", describeImagesMode);
-      
-  }
-}
 
 // Get the base path of the current URL
 const currentPath = window.location.pathname;
@@ -716,7 +389,7 @@ function toggleSidebar() {
   const elements = [
     "close-sidebar",
     "language-dropdown",
-    "sidebar",
+    "toggle-eli5-mode-button",
   ];
   elements.forEach((id) => {
     const element = document.getElementById(id);
@@ -725,28 +398,65 @@ function toggleSidebar() {
       element.removeAttribute("tabindex");
       openSidebar.setAttribute("aria-expanded", "true");
 
-      // Set focus on the first element of the sidebar after a delay
-      setTimeout(() => {
-        languageDropdown.focus();
-      }, 500);
-    } else {
-      element.setAttribute("aria-hidden", "true");
-      element.setAttribute("tabindex", "-1");
-      openSidebar.setAttribute("aria-expanded", "false");
-    }
-  });
+            // Set focus on the first element of the sidebar after a delay
+            setTimeout(() => {
+               // Add the announcement for screen readers
+               const announcement = document.getElementById("sidebar-description");
+               if (!announcement) {
+                // Create the announcement element if it doesn't exist
+                const newAnnouncement = document.createElement("div");
+                newAnnouncement.id = "language-change-announcement";
+                newAnnouncement.setAttribute("aria-live", "polite");
+                newAnnouncement.classList.add("sr-only");
+                document.body.appendChild(newAnnouncement);
+                }
+            
+                // Set the announcement text
+                announcement.textContent = 'This sidebar allows you to change the language, activate easy read mode, and access text-to-speech and explain-to-me options.';
+            
+                // Clear the announcement after a short delay
+                setTimeout(() => {
+                    announcement.textContent = '';
+                    languageDropdown.focus();
+                }, 7000);
+            }, 500);
+        } else {
+            element.setAttribute("aria-hidden", "true");
+            element.setAttribute("tabindex", "-1");
+            openSidebar.setAttribute("aria-expanded", "false");
+        }
+    });
 }
 
 // Language functionality
 function switchLanguage() {
-  stopAudio();
-  currentLanguage = document.getElementById("language-dropdown").value;
-  setCookie("currentLanguage", currentLanguage, 7, basePath);
-  fetchTranslations();
-  document
-    .getElementsByTagName("html")[0]
-    .setAttribute("lang", currentLanguage);
-  fetchTranslations();
+    stopAudio();
+    currentLanguage = document.getElementById("language-dropdown").value;
+    setCookie("currentLanguage", currentLanguage, 7, basePath);
+    fetchTranslations();
+    document
+        .getElementsByTagName("html")[0]
+        .setAttribute("lang", currentLanguage);
+    fetchTranslations();
+
+  // Add the announcement for screen readers
+  const announcement = document.getElementById("language-change-announcement");
+  if (!announcement) {
+      // Create the announcement element if it doesn't exist
+      const newAnnouncement = document.createElement("div");
+      newAnnouncement.id = "language-change-announcement";
+      newAnnouncement.setAttribute("aria-live", "polite");
+      newAnnouncement.classList.add("sr-only");
+      document.body.appendChild(newAnnouncement);
+  }
+  
+  // Set the announcement text
+  announcement.textContent = 'Language changed';
+  
+  // Clear the announcement after a short delay
+  setTimeout(() => {
+      announcement.textContent = '';
+  }, 1000);    
 }
 
 async function fetchTranslations() {
@@ -802,26 +512,14 @@ function applyTranslations() {
       }
     }
 
-    const elements = document.querySelectorAll(`[data-id="${key}"]`);
-    elements.forEach((element) => {
-      if (element) {
-        if (element.tagName === "IMG") {
-          element.setAttribute("alt", translations[translationKey]); // Set the alt text for images
-        } else {
-          element.textContent = translations[translationKey]; // Set the text content for other elements
-        }
+    const element = document.querySelector(`[data-id="${key}"]`);
+    if (element) {
+      if (element.tagName === "IMG") {
+        element.setAttribute("alt", translations[translationKey]); // Set the alt text for images
+      } else {
+        element.textContent = translations[translationKey]; // Set the text content for other elements
       }
-    });
-    const placeholderElements = document.querySelectorAll(
-      `[data-placeholder-id="${key}"]`
-    );
-    placeholderElements.forEach((element) => {
-      if (element) {
-        if (element.tagName === "INPUT" || element.tagName === "TEXTAREA") {
-          element.setAttribute("placeholder", translations[translationKey]); // Set the placeholder text for input elements
-        }
-      }
-    });
+    }
   }
 
   // Update eli5 content if eli5 mode is active
@@ -849,69 +547,30 @@ function applyTranslations() {
   gatherAudioElements();
 }
 
-function translateText(textToTranslate, variables = {}) {
-  var newText = translations[textToTranslate];
-  if (!newText) return textToTranslate; // Return the original text if no translation is found
-
-  return newText.replace(/\${(.*?)}/g, (match, p1) => variables[p1] || "");
-}
-
-// Add this new function to toggle autoplay
-function toggleAutoplay() {
-  autoplayMode = !autoplayMode;  
-  toggleCheckboxState("toggle-autoplay", autoplayMode);
-  setCookie("autoplayMode", autoplayMode, 7);
-
-  if (readAloudMode && autoplayMode && !isPlaying) {
-    currentIndex = 0;
-    isPlaying = true;
-    setPlayPauseIcon();
-    playAudioSequentially();
-  }
-}
-
 // Audio functionality
 function gatherAudioElements() {
   audioElements = Array.from(document.querySelectorAll("[data-id]"))
-      .filter(el => {
-          // Filter out navigation elements
-          const isNavElement = el.closest('.nav__list') !== null;
-          
-          // Skip images if describe images mode is off
-          const isImage = el.tagName.toLowerCase() === 'img';
-          if (isImage && !describeImagesMode) {
-              return false;
-          }
-          
-          return !isNavElement && !el.getAttribute("data-id").startsWith("sectioneli5");
-      })
-      .map(el => {
-          const id = el.getAttribute("data-id");
-          let audioSrc = audioFiles[id];
+    .map((el) => {
+      const id = el.getAttribute("data-id");
+      if (id.startsWith("sectioneli5")) return null; // Skip elements with data-id starting with sectioneli5
 
-          // If it's an image, try to get its aria description audio
-          if (el.tagName.toLowerCase() === 'img') {
-              const ariaId = el.getAttribute("data-aria-id");
-              if (ariaId && audioFiles[ariaId]) {
-                  audioSrc = audioFiles[ariaId];
-              }
-          }
+      let audioSrc = audioFiles[id]; // Default audio source
 
-          // Check if Easy-Read mode is enabled and if an easy-read version exists
-          if (easyReadMode) {
-              const easyReadAudioId = `easyread-${id}`;
-              if (audioFiles.hasOwnProperty(easyReadAudioId)) {
-                  audioSrc = audioFiles[easyReadAudioId];
-              }
-          }
+      // Check if Easy-Read mode is enabled and if an easy-read version exists
+      if (easyReadMode) {
+        const easyReadAudioId = `easyread-${id}`;
+        if (audioFiles.hasOwnProperty(easyReadAudioId)) {
+          audioSrc = audioFiles[easyReadAudioId]; // Use easy-read audio source if available
+        }
+      }
 
-          return {
-              element: el,
-              id: id,
-              audioSrc: audioSrc,
-          };
-      })
-      .filter(item => item && item.audioSrc);
+      return {
+        element: el,
+        id: id,
+        audioSrc: audioSrc,
+      };
+    })
+    .filter((item) => item && item.audioSrc); // Filter out null values
 }
 
 function playAudioSequentially() {
@@ -983,69 +642,25 @@ function togglePlayPause() {
   setPlayPauseIcon();
 }
 
-function toggleCheckboxState(inputId, toState = null) {
-  const checkbox = document.getElementById(inputId);
-  if (checkbox) {
-    if (toState !== null) {
-      checkbox.checked = toState;
-    } else {
-      checkbox.checked = !checkbox.checked;
-    }
-  } else {
-      console.error(`No element found with ID: ${inputId}`);
-  }
-}
-
 function toggleReadAloud() {
   readAloudMode = !readAloudMode;
-  setCookie("readAloudMode", readAloudMode);
-
-  const autoplayContainer = document.getElementById("autoplay-container");
-  const describeImagesContainer = document.getElementById("describe-images-container");
-  const sidebar = document.getElementById("sidebar");
-  
-  toggleCheckboxState("toggle-tts", readAloudMode);
-  
-  if (autoplayContainer && describeImagesContainer) {
-    if (readAloudMode) {
-      autoplayContainer.classList.remove("hidden");
-      describeImagesContainer.classList.remove("hidden");
-      sidebar.setAttribute("aria-hidden", "false");
-    } else {
-      autoplayContainer.classList.add("hidden");
-      describeImagesContainer.classList.add("hidden");
-      // Only set aria-hidden if no elements in the sidebar have focus
-      if (!sidebar.contains(document.activeElement)) {
-        sidebar.setAttribute("aria-hidden", "true");
-      }
-    }
-  }
-  
+  document
+    .getElementById("toggle-read-aloud-icon")
+    .classList.toggle("fa-toggle-on", readAloudMode);
+  document
+    .getElementById("toggle-read-aloud-icon")
+    .classList.toggle("fa-toggle-off", !readAloudMode);
   togglePlayBar();
-
-  if (readAloudMode) {
-    gatherAudioElements();
-    if (autoplayMode) {
-      stopAudio();
-      currentIndex = 0;
-      isPlaying = true;
-      setPlayPauseIcon();
-      playAudioSequentially();
-    }
-  } else {
-    stopAudio();
-    unhighlightAllElements();
-  }
+  setCookie("readAloudMode", readAloudMode);
 }
 
 function loadToggleButtonState() {
   // Ensure all required elements exist before proceeding
-  const readAloudItem = document.getElementById("toggle-easy");
-  const eli5Item = document.getElementById("toggle-eli5");
-  const autoplayContainer = document.getElementById("autoplay-container");
-  const describeImagesContainer = document.getElementById("describe-images-container");
+  const readAloudIcon = document.getElementById("toggle-read-aloud-icon");
+  const eli5Icon = document.getElementById("toggle-eli5-icon");
+  const eli5Content = document.getElementById("eli5-content");
 
-  if (!readAloudItem || !eli5Item) {
+  if (!readAloudIcon || !eli5Icon || !eli5Content) {
     // If elements aren't ready, retry after a short delay
     setTimeout(loadToggleButtonState, 100);
     return;
@@ -1056,35 +671,22 @@ function loadToggleButtonState() {
 
   if (readAloudModeCookie) {
     readAloudMode = readAloudModeCookie === "true";
-    toggleCheckboxState("toggle-tts", readAloudMode);
-    
-    // Show/hide autoplay container based on readAloudMode
-    if (autoplayContainer) {
-      if (readAloudMode) {
-        autoplayContainer.classList.remove("hidden");
-        describeImagesContainer.classList.remove("hidden");
-      } else {
-        autoplayContainer.classList.add("hidden");
-        describeImagesContainer.classList.add("hidden");
-      }
-    }
+    document
+      .getElementById("toggle-read-aloud-icon")
+      .classList.toggle("fa-toggle-on", readAloudMode);
+    document
+      .getElementById("toggle-read-aloud-icon")
+      .classList.toggle("fa-toggle-off", !readAloudMode);
   }
-
-  // Initialize autoplay after a brief delay to ensure everything is loaded
-  setTimeout(() => {
-    if (readAloudMode && autoplayMode) {
-      stopAudio();
-      gatherAudioElements();
-      currentIndex = 0;
-      isPlaying = true;
-      setPlayPauseIcon();
-      playAudioSequentially();
-    }
-  }, 500);
 
   if (eli5ModeCookie) {
     eli5Mode = eli5ModeCookie === "true";
-    toggleCheckboxState("toggle-eli5", eli5Mode);
+    document
+      .getElementById("toggle-eli5-icon")
+      .classList.toggle("fa-toggle-on", eli5Mode);
+    document
+      .getElementById("toggle-eli5-icon")
+      .classList.toggle("fa-toggle-off", !eli5Mode);
 
     // Automatically display ELI5 content if mode is enabled
     if (eli5Mode && translations) {
@@ -1098,6 +700,8 @@ function loadToggleButtonState() {
           const eli5Container = document.getElementById("eli5-content");
           eli5Container.textContent = eli5Text;
           eli5Container.classList.remove("hidden");
+          //highlightElement(mainSection);
+          //highlightElement(eli5Container);
         }
       }
     }
@@ -1107,14 +711,22 @@ function loadToggleButtonState() {
 
 function toggleEli5Mode() {
   eli5Mode = !eli5Mode;
-  setCookie("eli5Mode", eli5Mode, 7);
-  toggleCheckboxState("toggle-eli5", eli5Mode);
+  document
+    .getElementById("toggle-eli5-icon")
+    .classList.toggle("fa-toggle-on", eli5Mode);
+  document
+    .getElementById("toggle-eli5-icon")
+    .classList.toggle("fa-toggle-off", !eli5Mode);
 
   if (isPlaying) stopAudio();
   unhighlightAllElements();
 
   // Automatically display ELI5 content when mode is toggled on
   if (eli5Mode) {
+    // Set text for the eli5 accessibility tip.        
+    const eli5tip = document.getElementById("eli5-accessibility-tip");
+    eli5tip.textContent = "Go to the next element to hear the eli5 explanation.";
+
     // Find the main section element that contains the eli5 data-id
     const mainSection = document.querySelector(
       'section[data-id^="sectioneli5"]'
@@ -1160,7 +772,12 @@ function toggleEli5Mode() {
     // Clear the ELI5 content when mode is turned off
     document.getElementById("eli5-content").textContent = "";
     document.getElementById("eli5-content").classList.add("hidden");
+
+    // Clear the eli5 accessibility tip.        
+    const eli5tip = document.getElementById("eli5-accessibility-tip");
+    eli5tip.textContent = "";
   }
+  setCookie("eli5Mode", eli5Mode, 7); // Save state in cookie
 }
 
 function initializePlayBar() {
@@ -1172,23 +789,11 @@ function initializePlayBar() {
   }
 }
 
-function initializeAutoplay() {
-  if (readAloudMode && autoplayMode) {
-    stopAudio();
-    gatherAudioElements();
-    currentIndex = 0;
-    isPlaying = true;
-    setPlayPauseIcon();
-    playAudioSequentially();
-  }
-}
-
 function initializeAudioSpeed() {
   let savedAudioSpeed = getCookie("audioSpeed");
   if (savedAudioSpeed) {
     audioSpeed = savedAudioSpeed;
-    const speedClass = Object.entries(speedMapping).find(([key, value]) => value === audioSpeed)?.[0] || 'speed-1';
-    document.getElementById("read-aloud-speed").innerHTML = document.getElementsByClassName(speedClass)[0].innerHTML;
+    document.getElementById("read-aloud-speed").textContent = audioSpeed + "x";
 
     // Set the playback rate for currentAudio and eli5Audio if they exist
     if (currentAudio) {
@@ -1275,14 +880,14 @@ function stopAudio() {
 
 function changeAudioSpeed(event) {
   // Get the button that was clicked
-  const button = event.target.closest('.read-aloud-change-speed');
+  let button = event.target;
 
   // Extract the speed value from the class
   let speedClass = Array.from(button.classList).find((cls) =>
     cls.startsWith("speed-")
   );
-  audioSpeed = speedMapping[speedClass];
-  document.getElementById("read-aloud-speed").innerHTML = button.innerHTML;
+  audioSpeed = speedClass.split("-").slice(1).join(".");
+  document.getElementById("read-aloud-speed").textContent = audioSpeed + "x";
 
   // Save the audio speed to a cookie
   setCookie("audioSpeed", audioSpeed, 7);
@@ -1301,11 +906,11 @@ function changeAudioSpeed(event) {
   // Update button styles
   document.querySelectorAll(".read-aloud-change-speed").forEach((btn) => {
     if (btn === button) {
+      btn.classList.remove("bg-black", "text-gray-300");
       btn.classList.add("bg-white", "text-black");
-      btn.classList.remove("bg-black", "text-white");
     } else {
       btn.classList.remove("bg-white", "text-black");
-      btn.classList.add("bg-black", "text-white");
+      btn.classList.add("bg-black", "text-gray-300");
     }
   });
 }
@@ -1401,92 +1006,49 @@ function toggleNav() {
     return; // Exit if elements are not found
   }
 
-  const isNavOpen = !navList.hasAttribute("hidden");
-  const currentPath = window.location.pathname.split("/").pop() || "index.html";
-  console.log("toggleNav - Nav is open:", isNavOpen);
-
-  if (isNavOpen) {
-    const scrollPosition = navList.scrollTop;
-    setCookie("navScrollPosition", scrollPosition, 7, basePath);
+  if (!navList.hasAttribute("hidden")) {
     navToggle.setAttribute("aria-expanded", "false");
     navList.setAttribute("hidden", "true");
-    setCookie("navState", "closed", 7, basePath);
   } else {
     navToggle.setAttribute("aria-expanded", "true");
     navList.removeAttribute("hidden");
-    setCookie("navState", "open", 7, basePath);
 
-    // First restore the saved position immediately
-    const savedPosition = getCookie("navScrollPosition");
-    if (savedPosition) {
-      navList.scrollTop = parseInt(savedPosition);
-    }
-
-    // Find the active link
-    const activeLink = Array.from(navLinks).find(
-      link => link.getAttribute("href") === currentPath
-    );
-
-    if (activeLink) {
-      // Make the active link focusable and give it focus for keyboard navigation
-      activeLink.setAttribute("tabindex", "0");
-      
-      setTimeout(() => {
-        const linkRect = activeLink.getBoundingClientRect();
-        const navRect = navList.getBoundingClientRect();
-        const isInView = (
-          linkRect.top >= navRect.top &&
-          linkRect.bottom <= navRect.bottom
-        );
-        
-        if (!isInView) {
-          activeLink.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-        activeLink.focus({ preventScroll: true });
-      }, 100);
-    }
+    // Set focus on first link
+    navLinks[0].focus();
   }
-
   navPopup.classList.toggle("-translate-x-full");
   navPopup.setAttribute(
     "aria-hidden",
     navPopup.classList.contains("-translate-x-full") ? "true" : "false"
   );
-  navPopup.classList.toggle("left-2");
 }
 
 // Next and previous pages
 function previousPage() {
-  const currentHref = window.location.href.split("/").pop() || "index.html";
+  const currentHref = window.location.href.split("/").pop();
   const navItems = document.querySelectorAll(".nav__list-link");
-  const navList = document.querySelector(".nav__list");
-
-  // // Save current scroll position before navigation
-  // if (navList) {
-  //   const scrollPosition = navList.scrollTop;
-  //   setCookie("navScrollPosition", scrollPosition, 7, basePath);
-  // }
-  
   for (let i = 0; i < navItems.length; i++) {
-    if (navItems[i].getAttribute("href") === currentHref && i > 0) {
-      const scrollPosition = navList?.scrollTop || 0;
-      setCookie("navScrollPosition", scrollPosition, 7, basePath);
-      window.location.href = navItems[i - 1].getAttribute("href");
+    if (navItems[i].getAttribute("href") === currentHref) {
+      if (i > 0) {
+        const prevItem = navItems[i - 1];
+        window.location.href = prevItem.getAttribute("href");
+        document.getElementById("page-number").innerText = prevItem.innerText;
+      }
       break;
     }
   }
 }
 
 function nextPage() {
-  const currentHref = window.location.href.split("/").pop() || "index.html";
+  const currentHref = window.location.href.split("/").pop();
   const navItems = document.querySelectorAll(".nav__list-link");
-  const navList = document.querySelector(".nav__list");
-
   for (let i = 0; i < navItems.length; i++) {
-    if (navItems[i].getAttribute("href") === currentHref && i < navItems.length - 1) {
-      const scrollPosition = navList?.scrollTop || 0;
-      setCookie("navScrollPosition", scrollPosition, 7, basePath);
-      window.location.href = navItems[i + 1].getAttribute("href");
+    if (navItems[i].getAttribute("href") === currentHref) {
+      if (i < navItems.length - 1) {
+        const nextItem = navItems[i + 1];
+        window.location.href = nextItem.getAttribute("href");
+        document.getElementById("page-number").innerText = nextItem.innerText;
+      }
       break;
     }
   }
@@ -1497,32 +1059,43 @@ function nextPage() {
 // Function to toggle Easy-Read mode
 function toggleEasyReadMode() {
   easyReadMode = !easyReadMode;
-  setCookie("easyReadMode", easyReadMode, 7);
-  toggleCheckboxState("toggle-easy", easyReadMode);
+
+  const toggleButton = document.getElementById("toggle-easy-read-button");
+  const toggleIcon = document.getElementById("toggle-easy-read-icon");
+
+  // Toggle the icon classes
+  toggleIcon.classList.toggle("fa-toggle-on", easyReadMode);
+  toggleIcon.classList.toggle("fa-toggle-off", !easyReadMode);
 
   // Update the aria-pressed attribute
-  // toggleButton.setAttribute("aria-pressed", easyReadMode);
+  toggleButton.setAttribute("aria-pressed", easyReadMode);
 
   stopAudio();
   currentLanguage = document.getElementById("language-dropdown").value;
   fetchTranslations();
   gatherAudioElements(); // Call this after fetching translations to update audio elements
+
+  // Save the Easy-Read mode state to a cookie
+  setCookie("easyReadMode", easyReadMode, 7);
 }
 
 // Function to load Easy-Read mode state from the cookie
 function loadEasyReadMode() {
   const easyReadModeCookie = getCookie("easyReadMode");
-  
+  const toggleButton = document.getElementById("toggle-easy-read-button");
+  const toggleIcon = document.getElementById("toggle-easy-read-icon");
 
   if (easyReadModeCookie !== "") {
     easyReadMode = easyReadModeCookie === "true";
 
-    toggleCheckboxState("toggle-easy", easyReadMode);
+    // Toggle the icon classes
+    toggleIcon.classList.toggle("fa-toggle-on", easyReadMode);
+    toggleIcon.classList.toggle("fa-toggle-off", !easyReadMode);
 
     // Update the aria-pressed attribute
-    //toggleButton.setAttribute("aria-pressed", easyReadMode);
+    toggleButton.setAttribute("aria-pressed", easyReadMode);
 
-    stopAudio();
+    if (isPlaying) stopAudio();
     currentLanguage = document.getElementById("language-dropdown").value;
     fetchTranslations();
     gatherAudioElements(); // Call this after fetching translations to update audio elements
